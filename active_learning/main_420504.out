@@ -1,0 +1,929 @@
+Running on host: xgph14
+Starting job at: Wed Mar 11 05:57:55 PM +08 2026
+Running Python script: main.py
+Loaded dataset with 2034 samples from ../data_v4/train
+Decoding images...
+Cleaning dataset columns...
+
+DEBUG: First 5 rows after image decoding:
+Row 0:
+  ID: 1933-05-18_377_23
+  Text: کمودين تله تياد برحاصيل اڤابيلا
+  Image type: <class 'PIL.PngImagePlugin.PngImageFile'>
+  Image size: (623, 149)
+  Image mode: RGB
+
+Row 1:
+  ID: 1933-03-08_2611_22
+  Text: سکيراڽ اد دلاکوکن هالا مڠمبيل
+  Image type: <class 'PIL.PngImagePlugin.PngImageFile'>
+  Image size: (526, 149)
+  Image mode: RGB
+
+Row 2:
+  ID: 1933-05-02_239_7
+  Text: -------------------------------------- بارڠ2 سأورڠ...
+  Image type: <class 'PIL.PngImagePlugin.PngImageFile'>
+  Image size: (1009, 149)
+  Image mode: RGB
+
+Row 3:
+  ID: 1937-12-09_1438_24
+  Text: (ڤيهق يڠ برقواس يڠ منونجوققن
+  Image type: <class 'PIL.PngImagePlugin.PngImageFile'>
+  Image size: (659, 149)
+  Image mode: RGB
+
+Row 4:
+  ID: 1933-07-29_119_8
+  Text: .هادڤن ڤڠاديل يڠ کتيݢ سمالم
+  Image type: <class 'PIL.PngImagePlugin.PngImageFile'>
+  Image size: (549, 149)
+  Image mode: RGB
+
+
+===== ITERATION 0 =====
+Computing uncertainty for 1831 samples using TRUE batch_size=2...
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 4 tokens: ['1.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '1.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.9773 from 5 tokens: ['0.894', '1.000', '0.999', '0.999', '0.999']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 5 tokens: ['0.000', '0.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.4724 from 3 tokens: ['0.125', '0.854', '0.988']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0001 from 5 tokens: ['0.978', '0.000', '0.187', '1.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 5 tokens: ['1.000', '0.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.9931 from 4 tokens: ['0.982', '1.000', '0.993', '0.997']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0016 from 4 tokens: ['0.978', '0.000', '0.067', '1.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Generated 3 tokens: [124453, 32311, 151645]
+DEBUG: Have 3 score tensors
+DEBUG: Special token IDs to ignore: {151648, 151649, 151650, 151651, 151652, 151653, 151654, 151655, 151656, 151643, 151644, 151645, 151646, 151647}
+DEBUG: Token 0: ID=124453, in_special_tokens=False
+DEBUG: Token 124453 log_prob: -0.036220, prob: 0.964428
+DEBUG: Top 5 log_probs: [(124453, -0.0362202450633049), (10176, -3.411456823348999), (131482, -7.741729259490967), (126242, -7.917811870574951), (129435, -8.13671875)]
+DEBUG: Token 1: ID=32311, in_special_tokens=False
+DEBUG: Token 32311 log_prob: -0.012807, prob: 0.987275
+DEBUG: Top 5 log_probs: [(32311, -0.01280690636485815), (153, -4.77047061920166), (147875, -6.465018272399902), (31073, -7.401589393615723), (146508, -7.519864082336426)]
+DEBUG: Token 2: ID=151645, in_special_tokens=True
+DEBUG: Skipping special token 151645
+DEBUG: Calculated confidence 0.9758 from 2 tokens: ['0.964', '0.987']
+DEBUG: Generated 12 tokens: [151643, 151643, 151643, 151643, 151643, 151643, 151643, 151643, 151643, 151645, 151643, 151643]
+DEBUG: Have 3 score tensors
+DEBUG: Special token IDs to ignore: {151648, 151649, 151650, 151651, 151652, 151653, 151654, 151655, 151656, 151643, 151644, 151645, 151646, 151647}
+DEBUG: Token 0: ID=151643, in_special_tokens=True
+DEBUG: Skipping special token 151643
+DEBUG: Token 1: ID=151643, in_special_tokens=True
+DEBUG: Skipping special token 151643
+DEBUG: Token 2: ID=151643, in_special_tokens=True
+DEBUG: Skipping special token 151643
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 4 tokens: ['0.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0003 from 3 tokens: ['0.981', '0.000', '0.309']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 4 tokens: ['1.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: Calculated confidence 0.7551 from 4 tokens: ['0.744', '0.997', '0.439', '1.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '1.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.8472 from 5 tokens: ['0.999', '0.992', '0.997', '0.945', '0.467']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 5 tokens: ['1.000', '0.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.3090 from 1 tokens: ['0.309']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.3985 from 1 tokens: ['0.399']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.8527 from 5 tokens: ['0.998', '0.994', '1.000', '0.891', '0.510']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.996', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Generated 7 tokens: [151643, 151643, 151643, 136686, 146508, 151645, 151643]
+DEBUG: Have 4 score tensors
+DEBUG: Special token IDs to ignore: {151648, 151649, 151650, 151651, 151652, 151653, 151654, 151655, 151656, 151643, 151644, 151645, 151646, 151647}
+DEBUG: Token 0: ID=151643, in_special_tokens=True
+DEBUG: Skipping special token 151643
+DEBUG: Token 1: ID=151643, in_special_tokens=True
+DEBUG: Skipping special token 151643
+DEBUG: Token 2: ID=151643, in_special_tokens=True
+DEBUG: Skipping special token 151643
+DEBUG: Token 3: ID=136686, in_special_tokens=False
+DEBUG: Token 136686 log_prob: -46.260090, prob: 0.000000
+DEBUG: Top 5 log_probs: [(198, 0.0), (319, -19.076435089111328), (624, -21.82869529724121), (271, -22.16437339782715), (4894, -22.667768478393555)]
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: Generated 4 tokens: [124848, 31382, 10176, 151645]
+DEBUG: Have 4 score tensors
+DEBUG: Special token IDs to ignore: {151648, 151649, 151650, 151651, 151652, 151653, 151654, 151655, 151656, 151643, 151644, 151645, 151646, 151647}
+DEBUG: Token 0: ID=124848, in_special_tokens=False
+DEBUG: Token 124848 log_prob: -0.043426, prob: 0.957503
+DEBUG: Top 5 log_probs: [(124848, -0.04342644289135933), (13325, -3.8119068145751953), (127215, -4.000444412231445), (124454, -7.574527740478516), (125510, -7.579931259155273)]
+DEBUG: Token 1: ID=31382, in_special_tokens=False
+DEBUG: Token 31382 log_prob: -0.161195, prob: 0.851126
+DEBUG: Top 5 log_probs: [(31382, -0.1611945480108261), (124839, -1.9436824321746826), (124421, -5.842417240142822), (5703, -7.411104679107666), (125962, -7.849274158477783)]
+DEBUG: Token 2: ID=10176, in_special_tokens=False
+DEBUG: Token 10176 log_prob: -0.341517, prob: 0.710691
+DEBUG: Top 5 log_probs: [(10176, -0.3415171802043915), (124227, -2.3267581462860107), (8532, -2.718327283859253), (11798, -3.6976306438446045), (124176, -3.97739577293396)]
+DEBUG: Token 3: ID=151645, in_special_tokens=True
+DEBUG: Skipping special token 151645
+DEBUG: Calculated confidence 0.8336 from 3 tokens: ['0.958', '0.851', '0.711']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0056 from 3 tokens: ['0.000', '0.943', '0.351']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 4 tokens: ['0.000', '0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.8721 from 2 tokens: ['0.781', '0.974']
+DEBUG: Calculated confidence 0.0000 from 2 tokens: ['0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '1.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 4 tokens: ['0.080', '0.000', '0.000', '0.323']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.9293 from 5 tokens: ['0.972', '0.757', '0.999', '0.958', '0.983']
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: Calculated confidence 0.0000 from 1 tokens: ['0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['0.000', '0.000', '0.000']
+DEBUG: Calculated confidence 0.0000 from 3 tokens: ['1.000', '0.000', '0.000']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Calculated confidence 0.8406 from 5 tokens: ['0.912', '1.000', '0.860', '1.000', '0.535']
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: No valid token confidences found, returning 0.0
+DEBUG: Processed 1831 samples successfully, 0 samples failed
+DEBUG: Final uncertainty range: 0.0006 - 1.0000
+DEBUG: Final confidence range: 0.0000 - 0.9994
+DEBUG: Uncertainty stats - min: 0.0006, max: 1.0000, mean: 0.5063
+DEBUG: Confidence stats - min: 0.0000, max: 0.9994, mean: 0.4937
+DEBUG: Number of samples with uncertainty = 1.0: 702/1831
+Added 183 samples.
+Mean uncertainty selected: 1.0000
+Total labeled samples: 386
+Remaining unlabeled samples: 1648
+Active learning complete.
+Job finished at: Wed Mar 11 06:15:30 PM +08 2026
