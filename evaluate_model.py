@@ -9,70 +9,21 @@ Supports Qwen2.5-VL architecture models.
 """
 
 import pandas as pd
-import torch
-import torch.nn.functional as F
-from transformers import AutoModelForImageTextToText, AutoProcessor, AutoConfig
-from qwen_vl_utils import process_vision_info
 from PIL import Image
-from io import BytesIO
 import time
 from typing import List, Tuple, Dict
+from OCR_model_functions import OCRModelFunctions
+from data_loading_functions import load_parquet_dataframe, load_image_as_rgb
 from performance_metrics import (
-    levenshtein_distance,
     normalize_text,
     compute_mean_CER,
     compute_mean_WER,
-    evaluate_ocr
 )
-
-def calculate_confidence_from_scores(scores, generated_tokens, ignore_token_ids=None):
-    """
-    Calculate confidence score from model output scores.
-    
-    Args:
-        scores: List of logit tensors for each generation step
-        generated_tokens: Generated token IDs
-    
-    Returns:
-        float: Average confidence score (0-1, higher is more confident)
-    """
-    import torch
-    import torch.nn.functional as F
-    import math
-    
-    if not scores or len(generated_tokens) == 0:
-        return 0.0
-    
-    if ignore_token_ids is None:
-        ignore_token_ids = set()
-
-    token_confidences = []
-    
-    for i, score_tensor in enumerate(scores):
-        if i < len(generated_tokens):
-            try:
-                tok_id = int(generated_tokens[i])
-                if tok_id in ignore_token_ids:
-                    continue
-                # Convert logits to probabilities (cast to float32 for stability)
-                probs = F.softmax(score_tensor[0].to(torch.float32), dim=-1)
-                # Get probability of the actually generated token
-                token_prob = probs[tok_id].item()
-                token_confidences.append(token_prob)
-            except Exception as e:
-                print(f"Error processing token {i}: {e}")
-                continue
-    
-    # Return geometric mean of token probabilities (more conservative than arithmetic mean)
-    if token_confidences:
-        log_mean = sum(math.log(max(conf, 1e-10)) for conf in token_confidences) / len(token_confidences)
-        return math.exp(log_mean)
-    
-    return 0.0
 
 class ModelEvaluator:
     def __init__(self, model_name: str = "culturalheritagenus/Jawi-OCR-Qwen-v2"):
         self.model_name = model_name
+        self.ocr = OCRModelFunctions(model_name)
         self.model = None
         self.processor = None
         self.device = None
@@ -81,28 +32,19 @@ class ModelEvaluator:
     def load_model(self):
         """Load the model and processor."""
         print(f"Loading model: {self.model_name}")
-        
-        # Determine device
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.ocr.load()
+        self.model = self.ocr.model
+        self.processor = self.ocr.processor
+        self.device = self.ocr.device
+        self.config = self.ocr.config
         print(f"Using device: {self.device}")
-
-        # Load config and fix missing rope_scaling
-        self.config = AutoConfig.from_pretrained("culturalheritagenus/Jawi-OCR-Qwen-v2")
-        self.config.rope_scaling = {'type': 'default', 'mrope_section': [16, 24, 24], 'rope_type': 'default'}
-        
-        # Load model using AutoModelForImageTextToText
-        self.model = AutoModelForImageTextToText.from_pretrained(self.model_name, config=self.config)
-        self.model = self.model.to(self.device)
-        
-        # Load processor from the same model instead of base Qwen model
-        self.processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct")
         
         print("✓ Model and processor loaded successfully")
         
     def load_test_data(self, test_path: str) -> pd.DataFrame:
         """Load test data from parquet file."""
         print(f"Loading test data from: {test_path}")
-        df = pd.read_parquet(test_path)
+        df = load_parquet_dataframe(test_path)
         print(f"✓ Loaded {len(df)} test samples")
         return df
         
@@ -113,64 +55,7 @@ class ModelEvaluator:
         where per-token log-probabilities are obtained from the model's output scores.
         """
         try:
-            # Prepare messages for the model
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "image", "image": image},
-                        {"type": "text", "text": "Transcribe the Jawi script in this image into Jawi text"}
-                    ]
-                },
-            ]
-
-            inputs = self.processor.apply_chat_template(
-                messages,
-                add_generation_prompt=True,
-                tokenize=True,
-                return_dict=True,
-                return_tensors="pt",
-            ).to(self.model.device)
-            
-
-
-            # Generate prediction
-            with torch.no_grad():
-                gen_out = self.model.generate(
-                    **inputs,
-                    max_new_tokens=128,
-                    return_dict_in_generate=True,
-                    #temperature=1.0,
-                    output_scores=True,
-                    do_sample=False,
-                    pad_token_id=self.processor.tokenizer.pad_token_id,
-                    eos_token_id=self.processor.tokenizer.eos_token_id
-                )
-            # Full sequences include the prompt; trim to generated continuation (match test_new_model.py logic)
-            sequences = gen_out.sequences  # [batch, in_len + gen_len]
-            input_len = inputs.input_ids.shape[1]
-            # Trim generated_ids by input length, as in test_new_model.py
-            gen_token_ids = [out_ids[input_len:] for out_ids in sequences]
-            # Decode generated text
-            output_text = self.processor.tokenizer.batch_decode(gen_token_ids, skip_special_tokens=True)[0]
-
-            # Compute confidence using geometric mean of per-token probabilities (retain original logic)
-            generated_tokens_list = gen_token_ids[0].tolist() if hasattr(gen_token_ids[0], 'tolist') else list(gen_token_ids[0])
-
-            # Exclude special/template tokens from scoring
-            special_ids = set(getattr(self.processor.tokenizer, "all_special_ids", []) or [])
-            eos_id = getattr(self.processor.tokenizer, "eos_token_id", None)
-            pad_id = getattr(self.processor.tokenizer, "pad_token_id", None)
-            if eos_id is not None:
-                special_ids.add(eos_id)
-            if pad_id is not None:
-                special_ids.add(pad_id)
-
-            confidence = calculate_confidence_from_scores(
-                gen_out.scores, generated_tokens_list, ignore_token_ids=special_ids
-            )
-
-            return output_text, confidence
+            return self.ocr.predict_pil_with_confidence(image)
 
         except Exception as e:
             print(f"Error predicting image: {e}")
@@ -204,9 +89,7 @@ class ModelEvaluator:
             try:
                 # Get image bytes
                 image_data = row['Image']
-                image_bytes = image_data['bytes']
-                # Convert bytes to PIL Image
-                image = Image.open(BytesIO(image_bytes)).convert('RGB')
+                image = load_image_as_rgb(image_data)
                 # Get ground truth
                 ground_truth = row['Text']
                 # Get prediction and confidence
@@ -220,7 +103,7 @@ class ModelEvaluator:
                     print(f"  Ground Truth: {repr(ground_truth)}")
                     print(f"  Prediction:   {repr(prediction)}")
                     print(f"  Confidence:   {confidence:.4f}")
-                    print(f"  Image Bytes Length: {len(image_bytes)}")
+                    print(f"  Image Type:   {type(image_data)}")
 
                     
             except Exception as e:
