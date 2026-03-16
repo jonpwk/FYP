@@ -13,16 +13,19 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from PIL import Image
-from io import BytesIO
 from functools import partial
 from tqdm import tqdm
 import logging
 import json
 from pathlib import Path
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
 # Transformers imports
 from transformers import AutoProcessor, AutoModelForImageTextToText, AutoConfig
+from data_loading_functions import load_parquet_dataframe, validate_required_columns, load_image_as_rgb
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -38,11 +41,9 @@ class ParquetOCRDataset(Dataset):
         
         if not os.path.exists(parquet_path):
             raise FileNotFoundError(f"Parquet file not found: {parquet_path}")
-        self.df = pd.read_parquet(parquet_path)
         required = ["Identifier", image_column, text_column]
-        for col in required:
-            if col not in self.df.columns:
-                raise ValueError(f"Missing required column in parquet: {col}")
+        self.df = load_parquet_dataframe(parquet_path)
+        validate_required_columns(self.df, required, context="Parquet")
         self.image_column = image_column
         self.text_column = text_column
 
@@ -53,11 +54,7 @@ class ParquetOCRDataset(Dataset):
         row = self.df.iloc[idx]
         # Handle parquet image data
         image_data = row[self.image_column]
-        if isinstance(image_data, dict) and "bytes" in image_data:
-            image_bytes = image_data["bytes"]
-            image = Image.open(BytesIO(image_bytes)).convert("RGB")
-        else:
-            image = Image.open(image_data).convert("RGB")
+        image = load_image_as_rgb(image_data)
         assistant_text = str(row[self.text_column]) if pd.notna(row[self.text_column]) else ""
 
         messages = [

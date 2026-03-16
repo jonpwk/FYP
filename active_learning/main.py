@@ -2,21 +2,24 @@ import torch
 import numpy as np
 import random
 import os
+import sys
 import pandas as pd
-import math
 import logging
 import subprocess
 import tempfile
 import gc
-from datasets import load_dataset, Dataset, concatenate_datasets
-from transformers import (
-    AutoProcessor,
-    AutoModelForImageTextToText,
-    AutoConfig,
-)
-from PIL import Image
+from pathlib import Path
+from datasets import concatenate_datasets
 import io
 from tqdm import tqdm
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+from OCR_model_functions import OCRModelFunctions
+from helper_functions import calculate_confidence_from_scores, build_special_token_ids
+from data_loading_functions import load_parquet_data_with_fallback, decode_parquet_image_example
 
 # ====================================================
 # CONFIG
@@ -43,105 +46,28 @@ torch.manual_seed(SEED)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def load_ocr_model(model_name):
+    """Load OCR model through shared abstraction."""
+    ocr = OCRModelFunctions(model_name=model_name, max_new_tokens=64)
+    ocr.load()
+    return ocr
+
+
 # ====================================================
 # LOAD MODEL
 # ====================================================
 
-processor = AutoProcessor.from_pretrained(
-    "Qwen/Qwen2.5-VL-3B-Instruct",
-    trust_remote_code=True,
-)
-
-config = AutoConfig.from_pretrained("culturalheritagenus/Jawi-OCR-Qwen-v2")
-config.rope_scaling = {
-    'type': 'default',
-    'mrope_section': [16, 24, 24],
-    'rope_type': 'default'
-}
-
-model = AutoModelForImageTextToText.from_pretrained(
-    MODEL_NAME,
-    config=config,
-    torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-    device_map=device,
-    trust_remote_code=True,
-)
-
-if device == "cuda":
-    model = model.half()
-    logger.info("✓ FP16 enabled")
-
-# Ensure pad token is set
-if processor.tokenizer.pad_token is None:
-    processor.tokenizer.pad_token = processor.tokenizer.eos_token
+ocr = load_ocr_model(MODEL_NAME)
 
 # ====================================================
 # LOAD PARQUET DATA
 # ====================================================
 
-def load_parquet_data(parquet_path, image_column="Image", text_column="Text", id_column="Identifier"):
-    """Load and validate parquet data with proper error handling."""
-    if not os.path.exists(parquet_path):
-        raise FileNotFoundError(f"Parquet file not found: {parquet_path}")
-    
-    # Try loading with datasets library first (for compatibility with existing code)
-    try:
-        dataset = load_dataset("parquet", data_files=parquet_path)["train"]
-        print(f"Loaded dataset with {len(dataset)} samples from {parquet_path}")
-        return dataset
-    except Exception as e:
-        print(f"Error loading with datasets library: {e}")
-        # Fallback to pandas if needed
-        df = pd.read_parquet(parquet_path)
-        required_cols = [id_column, image_column, text_column]
-        for col in required_cols:
-            if col not in df.columns:
-                raise ValueError(f"Missing required column in parquet: {col}")
-        # Convert back to datasets format
-        dataset = Dataset.from_pandas(df)
-        print(f"Loaded dataset with {len(dataset)} samples from {parquet_path} (pandas fallback)")
-        return dataset
-
-train_data = load_parquet_data(TRAIN_PATH)
-
-# ====================================================
-# IMAGE DECODER
-# ====================================================
-
-def decode_image(example):
-    """Decode image from parquet format with robust error handling."""
-    try:
-        # Handle different parquet image formats
-        image_data = example["Image"]
-        
-        # Check if image is already a PIL Image object
-        if hasattr(image_data, 'convert'):
-            # Already a PIL Image, just ensure RGB mode
-            image = image_data.convert("RGB")
-        elif isinstance(image_data, dict) and "bytes" in image_data:
-            image_bytes = image_data["bytes"]
-            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        elif isinstance(image_data, bytes):
-            image = Image.open(io.BytesIO(image_data)).convert("RGB")
-        else:
-            # Fallback - might be a path
-            image = Image.open(image_data).convert("RGB")
-        
-        example["image"] = image
-        example["text"] = str(example["Text"]) if "Text" in example else ""
-        example["id"] = str(example["Identifier"]) if "Identifier" in example else ""
-        return example
-    except Exception as e:
-        print(f"Error decoding image: {e}")
-        # Return a dummy black image to avoid breaking the pipeline
-        example["image"] = Image.new("RGB", (224, 224), color=(0, 0, 0))
-        example["text"] = ""
-        example["id"] = ""
-        return example
+train_data = load_parquet_data_with_fallback(TRAIN_PATH)
 
 # Apply image decoding to the loaded data
 print("Decoding images...")
-dataset = train_data.map(decode_image, desc="Decoding images")
+dataset = train_data.map(decode_parquet_image_example, desc="Decoding images")
 
 # Keep only required fields
 print("Cleaning dataset columns...")
@@ -231,132 +157,14 @@ def call_training_script(train_parquet_path, iteration, model_name):
         logger.error(f"Training script failed with exit code: {e.returncode}")
         raise
 
-def load_trained_model(model_path):
-    """Load the trained model from the specified path with same optimizations as original."""
-    logger.info(f"Loading trained model from {model_path}")
-    
-    # Load model configuration
-    config = AutoConfig.from_pretrained(model_path)
-    if not hasattr(config, 'rope_scaling') or config.rope_scaling is None:
-        config.rope_scaling = {'type': 'default', 'mrope_section': [16, 24, 24], 'rope_type': 'default'}
-    
-    # Load the trained model
-    model = AutoModelForImageTextToText.from_pretrained(
-        model_path,
-        config=config,
-        torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
-        device_map=device,
-        trust_remote_code=True,
-    )
-    
-    # Apply same optimizations as original model
-    if device == "cuda":
-        try:
-            # Enable model compilation for faster inference
-            if hasattr(torch, 'compile'):
-                model = torch.compile(model, mode="reduce-overhead")
-                logger.info("✓ Trained model compiled for faster inference")
-        except Exception as e:
-            logger.warning(f"Model compilation failed for trained model: {e}")
-        
-        # Enable half precision for memory efficiency
-        try:
-            model = model.half()
-            logger.info("✓ Enabled FP16 for trained model")
-        except Exception as e:
-            logger.warning(f"FP16 conversion failed for trained model: {e}")
-    
-    logger.info("Model loaded successfully")
-    return model
-
-# ====================================================
-# CONFIDENCE CALCULATION
-# ====================================================
-
-def calculate_confidence_from_scores(scores, generated_tokens, ignore_token_ids=None):
-    """
-    Calculate confidence score from model output scores.
-    
-    Args:
-        scores: List of logit tensors for each generation step
-        generated_tokens: Generated token IDs
-        ignore_token_ids: Set of token IDs to ignore (special tokens)
-    
-    Returns:
-        float: Average confidence score (0-1, higher is more confident)
-    """
-    import torch.nn.functional as F
-    import math
-    
-    if not scores or len(generated_tokens) == 0:
-        print(f"DEBUG: Empty scores or tokens - scores: {len(scores) if scores else 0}, tokens: {len(generated_tokens)}")
-        return 0.0
-    
-    if ignore_token_ids is None:
-        ignore_token_ids = set()
-
-    # DEBUG: Show what we're working with (only first sample to avoid spam)
-    debug_first_sample = len(scores) <= 5  # Only debug very short sequences
-    if debug_first_sample:
-        print(f"DEBUG: Generated {len(generated_tokens)} tokens: {generated_tokens}")
-        print(f"DEBUG: Have {len(scores)} score tensors")
-        print(f"DEBUG: Special token IDs to ignore: {ignore_token_ids}")
-
-    token_confidences = []
-    
-    debug_sample = debug_first_sample  # Only debug first sample to avoid spam
-    
-    for i, score_tensor in enumerate(scores):
-        if i < len(generated_tokens):
-            try:
-                tok_id = int(generated_tokens[i])
-                
-                if debug_sample:
-                    print(f"DEBUG: Token {i}: ID={tok_id}, in_special_tokens={tok_id in ignore_token_ids}")
-                
-                if tok_id in ignore_token_ids:
-                    if debug_sample:
-                        print(f"DEBUG: Skipping special token {tok_id}")
-                    continue
-                    
-                # Convert logits to log probabilities (more numerically stable)
-                log_probs = F.log_softmax(score_tensor[0].to(torch.float32), dim=-1)
-                # Get log probability of the actually generated token
-                token_log_prob = log_probs[tok_id].item()
-                # Convert back to regular probability
-                token_prob = math.exp(token_log_prob)
-                
-                if debug_sample:
-                    print(f"DEBUG: Token {tok_id} log_prob: {token_log_prob:.6f}, prob: {token_prob:.6f}")
-                    # Also check top-5 probabilities to see if model is confident in other tokens
-                    top_log_probs, top_indices = torch.topk(log_probs, 5)
-                    print(f"DEBUG: Top 5 log_probs: {[(idx.item(), log_prob.item()) for idx, log_prob in zip(top_indices, top_log_probs)]}")
-                
-                token_confidences.append(token_prob)
-            except Exception as e:
-                print(f"Error processing token {i}: {e}")
-                if debug_sample:
-                    print(f"DEBUG: Token {i} error details: score_tensor.shape={score_tensor.shape}, tok_id={tok_id}")
-                continue
-    
-    # Return geometric mean of token probabilities (more conservative than arithmetic mean)
-    if token_confidences:
-        log_mean = sum(math.log(max(conf, 1e-10)) for conf in token_confidences) / len(token_confidences)
-        confidence = math.exp(log_mean)
-        # Occasional debug print for first few samples
-        if len(token_confidences) <= 5:  # Only print for very short sequences to avoid spam
-            print(f"DEBUG: Calculated confidence {confidence:.4f} from {len(token_confidences)} tokens: {[f'{c:.3f}' for c in token_confidences]}")
-        return confidence
-    
-    print("DEBUG: No valid token confidences found, returning 0.0")
-    return 0.0
-
 # ====================================================
 # UNCERTAINTY (CONFIDENCE-BASED)
 # ====================================================
 
-def compute_uncertainty(model, dataset, batch_size=8):
+def compute_uncertainty(ocr, dataset, batch_size=8):
     """Compute uncertainty scores based on model confidence with TRUE batch processing."""
+    model = ocr.model
+    processor = ocr.processor
     model.eval()
     
     scores = []
@@ -409,8 +217,8 @@ def compute_uncertainty(model, dataset, batch_size=8):
                 pad_length = max_length - seq_len
                 
                 if pad_length > 0:
-                    input_ids = torch.nn.functional.pad(inp.input_ids, (0, pad_length), value=processor.tokenizer.pad_token_id)
-                    attention_mask = torch.nn.functional.pad(inp.attention_mask, (0, pad_length), value=0)
+                    input_ids = torch.nn.functional.pad(inp.input_ids, (pad_length, 0), value=processor.tokenizer.pad_token_id)
+                    attention_mask = torch.nn.functional.pad(inp.attention_mask, (pad_length, 0), value=0)
                 else:
                     input_ids = inp.input_ids
                     attention_mask = inp.attention_mask
@@ -451,13 +259,7 @@ def compute_uncertainty(model, dataset, batch_size=8):
             batch_confidences = []
             
             # Full special token filtering
-            special_ids = set(getattr(processor.tokenizer, "all_special_ids", []) or [])
-            eos_id = getattr(processor.tokenizer, "eos_token_id", None)
-            pad_id = getattr(processor.tokenizer, "pad_token_id", None)
-            if eos_id is not None:
-                special_ids.add(eos_id)
-            if pad_id is not None:
-                special_ids.add(pad_id)
+            special_ids = build_special_token_ids(processor.tokenizer)
             
             # Calculate individual confidence from batch results
             for i, input_len in enumerate(input_lens):
@@ -547,8 +349,8 @@ for iteration in range(NUM_ITERATIONS):
         logger.info("Clearing GPU memory before training...")
 
         try:
-            del model
-        except:
+            del ocr.model
+        except Exception:
             pass
 
         clear_gpu()
@@ -557,7 +359,7 @@ for iteration in range(NUM_ITERATIONS):
         trained_model_path = call_training_script(train_parquet_path, iteration, current_model_path)
         
         # Load the newly trained model
-        model = load_trained_model(trained_model_path)
+        ocr = load_ocr_model(trained_model_path)
         clear_gpu()
         # Update current model path for next iteration
         current_model_path = trained_model_path
@@ -572,7 +374,7 @@ for iteration in range(NUM_ITERATIONS):
 
     # Compute uncertainty and confidence scores with batch processing
     uncertainties, confidences = compute_uncertainty(
-        model,
+        ocr,
         unlabeled_pool,
         batch_size=UNCERTAINTY_BATCH_SIZE
     )  # Increased batch size

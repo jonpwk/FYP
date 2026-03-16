@@ -17,225 +17,16 @@ probabilities over the generated continuation, ignoring special/template tokens)
 from __future__ import annotations
 
 import argparse
-from io import BytesIO
 from pathlib import Path
-from typing import Tuple, List, Dict, Any
+from typing import List, Any
 
 import pandas as pd
-import torch
-import torch.nn.functional as F
-from PIL import Image
-from transformers import AutoModelForImageTextToText, AutoProcessor, AutoConfig
-from qwen_vl_utils import process_vision_info
+from OCR_model_functions import OCRModelFunctions
+from data_loading_functions import load_parquet_dataframe, extract_rows_for_ocr
 
 
-def calculate_confidence_from_scores(
-	scores: List[torch.Tensor],
-	generated_tokens: List[int],
-	ignore_token_ids: set[int] | None = None,
-	) -> float:
-	"""Conservative confidence from generation scores.
-
-	Uses the geometric mean of per-token probabilities for the actually
-	generated tokens, after removing special/template tokens.
-	"""
-	import math
-
-	if not scores or not generated_tokens:
-		return 0.0
-	if ignore_token_ids is None:
-		ignore_token_ids = set()
-
-	token_confs: List[float] = []
-	for i, score_tensor in enumerate(scores):
-		if i >= len(generated_tokens):
-			break
-		tok_id = int(generated_tokens[i])
-		if tok_id in ignore_token_ids:
-			continue
-		probs = F.softmax(score_tensor[0].to(torch.float32), dim=-1)
-		token_prob = float(probs[tok_id].item())
-		token_confs.append(token_prob)
-
-	if token_confs:
-		log_mean = sum(math.log(max(c, 1e-10)) for c in token_confs) / len(token_confs)
-		return float(math.exp(log_mean))
-	return 0.0
-
-
-class QwenOCR:
-	def __init__(self, model_name: str):
-		self.model_name = model_name
-		self.device = "cuda" if torch.cuda.is_available() else "cpu"
-		self.torch_dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
-		self.model = None
-		self.processor = None
-		self.config = None
-
-	def load(self):
-		self.config = AutoConfig.from_pretrained("culturalheritagenus/Jawi-OCR-Qwen-v2")
-		self.config.rope_scaling = {'type':'default','mrope_section':[16, 24, 24], 'rope_type': 'default'}
-		self.model = AutoModelForImageTextToText.from_pretrained(
-			self.model_name, 
-			config=self.config,
-			torch_dtype=self.torch_dtype,
-			device_map=self.device
-		)
-		# Use the base processor as in evaluate_model.py
-		self.processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct")
-		
-		# Optimize model for faster inference
-		if hasattr(torch, 'compile') and self.device == "cuda":
-			try:
-				self.model = torch.compile(self.model, mode="reduce-overhead")
-				print("[DEBUG] Model compiled with torch.compile for faster inference")
-			except Exception as e:
-				print(f"[DEBUG] torch.compile failed: {e}")
-		
-		# Enable mixed precision for CUDA
-		if self.device == "cuda":
-			self.model.half()  # Use FP16
-			print("[DEBUG] Enabled FP16 for faster inference")
-
-	@torch.no_grad()
-	def predict_with_confidence(self, image_bytes: bytes) -> Tuple[str, float]:
-		# Single-image implementation without calling batch method to avoid recursion
-		image = Image.open(BytesIO(image_bytes)).convert("RGB")
-		message = [
-			{
-				"role": "user",
-				"content": [
-					{"type": "image", "image": image},
-					{"type": "text", "text": "Transcribe the Jawi script in this image into Jawi text"}
-				]
-			}
-		]
-		try:
-			inputs = self.processor.apply_chat_template(
-				message,
-				add_generation_prompt=True,
-				tokenize=True,
-				return_dict=True,
-				return_tensors="pt",
-			).to(self.model.device)
-			with torch.no_grad():
-				gen_out = self.model.generate(
-					**inputs,
-					max_new_tokens=128,
-					return_dict_in_generate=True,
-					output_scores=True,
-					do_sample=False,
-					pad_token_id=self.processor.tokenizer.pad_token_id,
-					eos_token_id=self.processor.tokenizer.eos_token_id
-				)
-			sequences = gen_out.sequences  # [1, in_len + gen_len]
-			input_len = inputs.input_ids.shape[1]
-			gen_token_ids = sequences[0][input_len:]
-			output_text = self.processor.tokenizer.decode(gen_token_ids, skip_special_tokens=True)
-			
-			# Confidence calculation
-			scores = gen_out.scores
-			token_scores = [s[0].unsqueeze(0) for s in scores]  # Extract scores for single sample
-			generated_tokens_list = gen_token_ids.tolist() if hasattr(gen_token_ids, 'tolist') else list(gen_token_ids)
-			special_ids = set(getattr(self.processor.tokenizer, "all_special_ids", []) or [])
-			eos_id = getattr(self.processor.tokenizer, "eos_token_id", None)
-			pad_id = getattr(self.processor.tokenizer, "pad_token_id", None)
-			if eos_id is not None:
-				special_ids.add(eos_id)
-			if pad_id is not None:
-				special_ids.add(pad_id)
-			confidence = calculate_confidence_from_scores(
-				token_scores, generated_tokens_list, ignore_token_ids=special_ids
-			)
-			return (output_text, confidence)
-		except Exception as e:
-			print(f"[SINGLE ERROR] {e}")
-			return ("", 0.0)
-	@torch.no_grad()
-	def predict_batch_efficient(self, images_bytes: List[bytes], batch_size: int = 4) -> List[Tuple[str, float]]:
-		"""Process images in batches for much better efficiency."""
-		results = []
-		total_images = len(images_bytes)
-		
-		for i in range(0, total_images, batch_size):
-			batch = images_bytes[i:i + batch_size]
-			batch_results = self._process_single_batch(batch)
-			results.extend(batch_results)
-			print(f"[DEBUG] Processed batch {i//batch_size + 1}/{(total_images + batch_size - 1)//batch_size}")
-		
-		return results
-	
-	@torch.no_grad()
-	def _process_single_batch(self, images_bytes: List[bytes]) -> List[Tuple[str, float]]:
-		"""Process a single batch of images."""
-		# Load and preprocess all images in the batch
-		images = [Image.open(BytesIO(b)).convert("RGB") for b in images_bytes]
-		
-		# Create messages for all images
-		messages = [
-			{
-				"role": "user",
-				"content": [
-					{"type": "image", "image": img},
-					{"type": "text", "text": "Transcribe the Jawi script in this image into Jawi text"}
-				]
-			}
-			for img in images
-		]
-		
-		try:
-			# Process all messages together
-			inputs_list = []
-			for message in messages:
-				inputs = self.processor.apply_chat_template(
-					[message],
-					add_generation_prompt=True,
-					tokenize=True,
-					return_dict=True,
-					return_tensors="pt"
-				).to(self.model.device)
-				inputs_list.append(inputs)
-			
-			# Process each input through the model (still individual due to variable input sizes)
-			results = []
-			for idx, inputs in enumerate(inputs_list):
-				with torch.cuda.amp.autocast(enabled=self.device=="cuda"):
-					gen_out = self.model.generate(
-						**inputs,
-						max_new_tokens=128,
-						return_dict_in_generate=True,
-						output_scores=True,
-						do_sample=False,
-						pad_token_id=self.processor.tokenizer.pad_token_id,
-						eos_token_id=self.processor.tokenizer.eos_token_id
-					)
-				
-				sequences = gen_out.sequences
-				input_len = inputs.input_ids.shape[1]
-				gen_token_ids = sequences[0][input_len:]
-				output_text = self.processor.tokenizer.decode(gen_token_ids, skip_special_tokens=True)
-				
-				# Simplified confidence calculation
-				if len(gen_out.scores) > 0 and len(gen_token_ids) > 0:
-					# Use only the first few tokens for confidence to speed up
-					max_tokens_for_conf = min(5, len(gen_out.scores), len(gen_token_ids))
-					token_scores = [s[0].unsqueeze(0) for s in gen_out.scores[:max_tokens_for_conf]]
-					generated_tokens_list = gen_token_ids[:max_tokens_for_conf].tolist()
-					special_ids = {self.processor.tokenizer.eos_token_id, self.processor.tokenizer.pad_token_id}
-					confidence = calculate_confidence_from_scores(
-						token_scores, generated_tokens_list, ignore_token_ids=special_ids
-					)
-				else:
-					confidence = 0.0
-				
-				results.append((output_text, confidence))
-			
-			return results
-			
-		except Exception as e:
-			print(f"[BATCH ERROR] {e}")
-			# Fallback to individual processing
-			return [self.predict_with_confidence(b) for b in images_bytes]
+class QwenOCR(OCRModelFunctions):
+	"""Backward-compatible wrapper around centralized OCR model functions."""
 
 
 def auto_label(
@@ -261,11 +52,7 @@ def auto_label(
 
 
 	# Load data
-	df = pd.read_parquet(input_parquet)
-	required_cols = {"Identifier", "Image", "Text"}
-	missing = required_cols - set(df.columns)
-	if missing:
-		raise ValueError(f"Input parquet missing required columns: {sorted(missing)}")
+	df = load_parquet_dataframe(input_parquet, required_columns=["Identifier", "Image", "Text"])
 
 	# Only process the first 10 rows for speed
 	df = df.head(10)
@@ -278,20 +65,7 @@ def auto_label(
 	print("[DEBUG] Model and processor loaded.")
 
 	# Extract all data first
-	all_image_bytes = []
-	all_gt = []
-	all_ids = []
-	all_images = []
-	
-	for i, row in df.iterrows():
-		try:
-			image_bytes = row["Image"]["bytes"]
-		except Exception:
-			image_bytes = row["Image"]
-		all_image_bytes.append(image_bytes)
-		all_gt.append(row["Text"])
-		all_ids.append(row["Identifier"])
-		all_images.append(row["Image"])
+	all_image_bytes, all_gt, all_ids, all_images = extract_rows_for_ocr(df)
 	
 	print(f"[DEBUG] Processing {len(all_image_bytes)} images with batch_size={batch_size}")
 	
