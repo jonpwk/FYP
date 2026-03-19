@@ -8,6 +8,7 @@ import os
 import sys
 import argparse
 import gc
+import math
 import pandas as pd
 import torch
 import torch.nn.functional as F
@@ -110,9 +111,9 @@ def improved_collate_fn(batch, processor, device):
             input_ids_list.append(input_ids)
             attention_mask_list.append(attention_mask)
 
-            if hasattr(inp, 'pixel_values') and inp.pixel_values is not None:
+            if hasattr(inp, "pixel_values") and inp.pixel_values is not None:
                 pixel_values_list.append(inp.pixel_values)
-            if hasattr(inp, 'image_grid_thw') and inp.image_grid_thw is not None:
+            if hasattr(inp, "image_grid_thw") and inp.image_grid_thw is not None:
                 image_grid_thw_list.append(inp.image_grid_thw)
 
         batched_inputs = {
@@ -124,12 +125,10 @@ def improved_collate_fn(batch, processor, device):
         if image_grid_thw_list:
             batched_inputs["image_grid_thw"] = torch.cat(image_grid_thw_list, dim=0)
 
-        # Free intermediate lists before moving to GPU
         del input_ids_list, attention_mask_list, pixel_values_list, image_grid_thw_list, processed_inputs
 
         batched_inputs = {k: v.to(device) for k, v in batched_inputs.items()}
 
-        # Build labels: mask everything except the assistant response tokens
         labels = batched_inputs["input_ids"].clone()
 
         for i, messages in enumerate(messages_list):
@@ -144,9 +143,8 @@ def improved_collate_fn(batch, processor, device):
                     label_ids[j:j + len(assistant_tokens)] = assistant_tokens
                     break
 
-            labels[i] = torch.tensor(label_ids, dtype=torch.long)
+            labels[i] = torch.tensor(label_ids, dtype=torch.long, device=labels.device)
 
-        labels = labels.to(device)
         return batched_inputs, labels
 
     except Exception as e:
@@ -155,11 +153,7 @@ def improved_collate_fn(batch, processor, device):
 
 
 def clear_gpu():
-    """Flush the GPU caching allocator.
-
-    synchronize() must precede empty_cache() so that all in-flight CUDA
-    kernels have finished releasing their allocations first.
-    """
+    """Flush the GPU caching allocator."""
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.synchronize()
@@ -191,17 +185,12 @@ def validate(model, val_loader):
 
 
 def train_model(
-    # Data arguments
     train_parquet_path,
     val_parquet_path=None,
     image_column="Image",
     text_column="Text",
-
-    # Model arguments
     model_name="Qwen/Qwen2.5-VL-3B-Instruct",
     output_dir="./models/qwen25_finetuned",
-
-    # Training arguments
     epochs=3,
     train_batch_size=1,
     val_batch_size=1,
@@ -211,11 +200,7 @@ def train_model(
     accumulation_steps=8,
     eval_steps=500,
     save_steps=1000,
-
-    # Generation arguments
     user_text="Transcribe the Jawi script in this image into Jawi text",
-
-    # System arguments
     device=None,
 ):
     """Fine-tune with gradient checkpointing and aggressive memory hygiene."""
@@ -237,8 +222,6 @@ def train_model(
 
     logger.info("Loading model and processor...")
 
-    # FIX: flush allocator before loading — the parent process may have left
-    # fragmented reservations that prevent a clean contiguous model load.
     clear_gpu()
     if device == "cuda":
         logger.info(
@@ -248,10 +231,12 @@ def train_model(
         )
 
     config = AutoConfig.from_pretrained("culturalheritagenus/Jawi-OCR-Qwen-v2")
-    config.rope_scaling = {'type': 'default', 'mrope_section': [16, 24, 24], 'rope_type': 'default'}
+    config.rope_scaling = {
+        "type": "default",
+        "mrope_section": [16, 24, 24],
+        "rope_type": "default",
+    }
 
-    # FIX: use bfloat16 consistently (same precision as inference in main.py
-    # on CUDA) to avoid an implicit fp32 upcasting that doubles VRAM usage.
     torch_dtype = torch.bfloat16 if device == "cuda" else torch.float32
 
     model = AutoModelForImageTextToText.from_pretrained(
@@ -262,9 +247,6 @@ def train_model(
         trust_remote_code=True,
     )
 
-    # FIX: enable gradient checkpointing to trade compute for memory.
-    # For a 3B model this typically saves ~30-40% activation memory at the
-    # cost of ~20% slower backward pass — a worthwhile trade on a 40 GiB GPU.
     if hasattr(model, "gradient_checkpointing_enable"):
         model.gradient_checkpointing_enable()
         logger.info("Gradient checkpointing enabled")
@@ -307,22 +289,31 @@ def train_model(
         model.parameters(),
         lr=learning_rate,
         weight_decay=0.01,
-        eps=1e-8
+        eps=1e-8,
     )
 
-    total_steps = epochs * len(train_loader) // accumulation_steps
+    num_update_steps_per_epoch = math.ceil(len(train_loader) / accumulation_steps)
+    total_steps = epochs * num_update_steps_per_epoch
     scheduler = CosineAnnealingLR(optimizer, T_max=max(total_steps, 1))
 
     model.train()
     global_step = 0
-    best_val_loss = float('inf')
-    accumulated_loss = 0.0
+    best_val_loss = float("inf")
 
     logger.info(f"Starting training for {epochs} epochs...")
     logger.info(f"Total training steps: {total_steps}")
 
+    optimizer.zero_grad(set_to_none=True)
+
     for epoch in range(epochs):
-        epoch_loss = 0.0
+        epoch_raw_loss_sum = 0.0
+        epoch_microbatch_count = 0
+
+        window_raw_loss_sum = 0.0
+        window_microbatch_count = 0
+
+        step_losses = []
+
         progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}")
 
         for batch_idx, (batch_inputs, labels) in enumerate(progress_bar):
@@ -331,37 +322,47 @@ def train_model(
 
             try:
                 outputs = model(**batch_inputs, labels=labels)
-                loss = outputs.loss / accumulation_steps
+                raw_loss = outputs.loss
 
-                loss.backward()
-                accumulated_loss += loss.item()
+                epoch_raw_loss_sum += raw_loss.item()
+                epoch_microbatch_count += 1
 
-                # FIX: explicitly delete outputs and loss after backward so the
-                # computation graph and activation tensors are freed before the
-                # next forward pass, not whenever Python GC decides to run.
-                del outputs, loss
+                window_raw_loss_sum += raw_loss.item()
+                window_microbatch_count += 1
 
-                if (batch_idx + 1) % accumulation_steps == 0:
+                scaled_loss = raw_loss / accumulation_steps
+                scaled_loss.backward()
+
+                del outputs, raw_loss, scaled_loss
+
+                do_update = (
+                    ((batch_idx + 1) % accumulation_steps == 0)
+                    or ((batch_idx + 1) == len(train_loader))
+                )
+
+                if do_update:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 
                     optimizer.step()
                     scheduler.step()
-                    optimizer.zero_grad(set_to_none=True)  # set_to_none=True frees gradient memory immediately
+                    optimizer.zero_grad(set_to_none=True)
                     global_step += 1
 
-                    current_loss = accumulated_loss * accumulation_steps
+                    step_loss = window_raw_loss_sum / max(window_microbatch_count, 1)
+                    step_losses.append(step_loss)
+
+                    smooth_window = 10
+                    smooth_loss = sum(step_losses[-smooth_window:]) / min(len(step_losses), smooth_window)
+
                     progress_bar.set_postfix({
-                        "loss": f"{current_loss:.4f}",
-                        "lr": f"{optimizer.param_groups[0]['lr']:.2e}"
+                        "step_loss": f"{step_loss:.4f}",
+                        "smooth_loss": f"{smooth_loss:.4f}",
+                        "lr": f"{optimizer.param_groups[0]['lr']:.2e}",
                     })
 
-                    epoch_loss += accumulated_loss
-                    accumulated_loss = 0.0
+                    window_raw_loss_sum = 0.0
+                    window_microbatch_count = 0
 
-                    # FIX: flush allocator every accumulation step (i.e. after
-                    # every real weight update) rather than only every 10 steps.
-                    # With gradient checkpointing this is cheap and prevents
-                    # fragmentation from building up across batches.
                     clear_gpu()
 
                     if val_loader and global_step % eval_steps == 0:
@@ -385,27 +386,46 @@ def train_model(
                         logger.info(f"Checkpoint saved to {checkpoint_dir}")
 
             except torch.cuda.OutOfMemoryError as oom:
-                # On OOM: free everything, zero grads, and skip this batch
-                # rather than crashing the whole training run.
                 logger.error(f"OOM on batch {batch_idx}, skipping: {oom}")
-                del batch_inputs, labels
-                if 'outputs' in dir():
+
+                if "outputs" in locals():
                     del outputs
-                if 'loss' in dir():
-                    del loss
+                if "raw_loss" in locals():
+                    del raw_loss
+                if "scaled_loss" in locals():
+                    del scaled_loss
+                del batch_inputs, labels
+
                 optimizer.zero_grad(set_to_none=True)
+
+                window_raw_loss_sum = 0.0
+                window_microbatch_count = 0
+
                 clear_gpu()
                 continue
 
             except Exception as e:
                 logger.error(f"Training batch failed: {e}")
+
+                if "outputs" in locals():
+                    del outputs
+                if "raw_loss" in locals():
+                    del raw_loss
+                if "scaled_loss" in locals():
+                    del scaled_loss
+
                 optimizer.zero_grad(set_to_none=True)
+
+                window_raw_loss_sum = 0.0
+                window_microbatch_count = 0
+
                 clear_gpu()
                 continue
 
+        avg_epoch_loss = epoch_raw_loss_sum / max(epoch_microbatch_count, 1)
         logger.info(
             f"Epoch {epoch+1} completed. "
-            f"Average loss: {epoch_loss / max(1, len(train_loader) // accumulation_steps):.4f}"
+            f"Average raw loss: {avg_epoch_loss:.4f}"
         )
 
     final_dir = os.path.join(output_dir, "final_model")
