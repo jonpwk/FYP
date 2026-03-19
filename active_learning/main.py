@@ -8,6 +8,7 @@ import logging
 import subprocess
 import tempfile
 import gc
+import argparse
 from pathlib import Path
 from datasets import concatenate_datasets
 import io
@@ -22,6 +23,36 @@ from data_loading_functions import load_parquet_data_with_fallback, decode_parqu
 from transformers import AutoProcessor, AutoModelForImageTextToText, AutoConfig
 
 # ====================================================
+# CLI
+# ====================================================
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--strategy",
+        type=str,
+        choices=["active", "random"],
+        default="active",
+        help="Acquisition strategy to use.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for dataset split.",
+    )
+    parser.add_argument(
+        "--run_id",
+        type=int,
+        default=0,
+        help="Run identifier for repeated runs with the same seed. Mainly useful for random strategy.",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+
+# ====================================================
 # CONFIG
 # ====================================================
 
@@ -34,14 +65,24 @@ INITIAL_LABEL_FRACTION = 0.1
 ACQUISITION_FRACTION = 0.1
 NUM_ITERATIONS = 5
 UNCERTAINTY_BATCH_SIZE = 2
-SEED = 42
 MAX_IMAGE_SIDE = 1024
+
+ACQUISITION_STRATEGY = args.strategy
+SEED = args.seed
+RUN_ID = args.run_id
+
+if ACQUISITION_STRATEGY == "random":
+    EXPERIMENT_NAME = f"{ACQUISITION_STRATEGY}_seed_{SEED}_run_{RUN_ID}"
+else:
+    EXPERIMENT_NAME = f"{ACQUISITION_STRATEGY}_seed_{SEED}"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,7 +109,6 @@ def load_model_and_processor(model_name):
     """Load model and processor as plain variables with a consistent dtype/device path."""
     config = AutoConfig.from_pretrained(model_name)
 
-    # Patch rope_scaling whether loading from hub or a local checkpoint
     config.rope_scaling = {
         "type": "default",
         "mrope_section": [16, 24, 24],
@@ -109,11 +149,7 @@ def load_model_and_processor(model_name):
 
 
 def clear_gpu():
-    """Flush the GPU caching allocator.
-
-    synchronize() must come before empty_cache() so all pending CUDA
-    kernels have released their allocations first.
-    """
+    """Flush the GPU caching allocator."""
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.synchronize()
@@ -200,12 +236,8 @@ def save_dataset_to_parquet(dataset, filepath):
 
 
 def call_training_script(train_parquet_path, iteration, model_name):
-    """Call the unified_qwen25_finetune.py script for training.
-
-    Must only be called after the model has been deleted and clear_gpu()
-    has been called — the subprocess shares the same physical GPU.
-    """
-    output_dir = f"./active_learning_models/iteration_{iteration}"
+    """Call the unified_qwen25_finetune.py script for training."""
+    output_dir = f"./active_learning_models/{EXPERIMENT_NAME}/iteration_{iteration}"
 
     cmd = [
         "python",
@@ -279,9 +311,7 @@ def save_uncertainty_results_to_csv(
         }
     )
     iteration_suffix = f"_iteration_{iteration}" if iteration is not None else ""
-    csv_filename = (
-        f"uncertainty_results_{MODEL_NAME.replace('/', '_')}{iteration_suffix}.csv"
-    )
+    csv_filename = f"uncertainty_results_{EXPERIMENT_NAME}{iteration_suffix}.csv"
     results_df.to_csv(csv_filename, index=False)
     print(f"Uncertainty results saved to: {csv_filename}")
 
@@ -307,9 +337,6 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
         batch_samples = [dataset[i] for i in range(batch_start, batch_end)]
 
         try:
-            # =========================
-            # Step 1: Prepare inputs
-            # =========================
             batch_inputs = []
 
             for sample in batch_samples:
@@ -340,9 +367,6 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
 
                 batch_inputs.append(inputs)
 
-            # =========================
-            # Step 2: Pad batch
-            # =========================
             max_length = max(inp.input_ids.shape[1] for inp in batch_inputs)
 
             input_ids_list = []
@@ -389,9 +413,6 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
 
             input_len = batched_inputs["input_ids"].shape[1]
 
-            # =========================
-            # Step 3: Generate with scores (single pass)
-            # =========================
             with torch.no_grad():
                 gen_out = model.generate(
                     **batched_inputs,
@@ -403,9 +424,6 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
                     eos_token_id=processor.tokenizer.eos_token_id,
                 )
 
-            # =========================
-            # Step 4: Confidence computation from generation scores
-            # =========================
             gen_sequences = gen_out.sequences
             for i in range(len(batch_samples)):
                 gen_tokens = gen_sequences[i, input_len:]
@@ -438,9 +456,6 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
 
             success_count += len(batch_samples)
 
-            # =========================
-            # Step 5: Cleanup
-            # =========================
             del batched_inputs
             del gen_out
             clear_gpu()
@@ -471,11 +486,42 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
 
 
 # ====================================================
-# ACTIVE LEARNING LOOP
+# ACQUISITION STRATEGY
 # ====================================================
 
-os.makedirs("./active_learning_models", exist_ok=True)
+
+def select_acquisition_indices(unlabeled_pool, n_acquire, strategy, iteration, uncertainties=None):
+    """Select indices from the unlabeled pool according to the acquisition strategy."""
+    n_pool = len(unlabeled_pool)
+    n_acquire = min(n_acquire, n_pool)
+
+    if n_acquire <= 0:
+        return np.array([], dtype=int)
+
+    if strategy == "active":
+        if uncertainties is None:
+            raise ValueError("uncertainties must be provided for active acquisition")
+        return np.argsort(-uncertainties)[:n_acquire]
+
+    if strategy == "random":
+        rng_seed = SEED + 10000 * RUN_ID + iteration
+        rng = np.random.default_rng(rng_seed)
+        return rng.choice(n_pool, size=n_acquire, replace=False)
+
+    raise ValueError(f"Unknown acquisition strategy: {strategy}")
+
+
+# ====================================================
+# ACTIVE LEARNING / RANDOM SAMPLING LOOP
+# ====================================================
+
+os.makedirs(f"./active_learning_models/{EXPERIMENT_NAME}", exist_ok=True)
 current_model_path = MODEL_NAME
+
+print(f"Running experiment: {EXPERIMENT_NAME}")
+print(f"Acquisition strategy: {ACQUISITION_STRATEGY}")
+print(f"Seed: {SEED}")
+print(f"Run ID: {RUN_ID}")
 
 for iteration in range(NUM_ITERATIONS):
     print(f"\n===== ITERATION {iteration} =====")
@@ -511,39 +557,65 @@ for iteration in range(NUM_ITERATIONS):
     if len(unlabeled_pool) == 0:
         break
 
-    uncertainties, confidences = compute_uncertainty(
-        model,
-        processor,
-        unlabeled_pool,
-        batch_size=UNCERTAINTY_BATCH_SIZE,
-        iteration=iteration,
-    )
-
-    print(
-        f"DEBUG: Uncertainty stats - min: {uncertainties.min():.4f}, "
-        f"max: {uncertainties.max():.4f}, mean: {uncertainties.mean():.4f}"
-    )
-    print(
-        f"DEBUG: Confidence stats - min: {confidences.min():.4f}, "
-        f"max: {confidences.max():.4f}, mean: {confidences.mean():.4f}"
-    )
-    print(
-        f"DEBUG: Number of samples with uncertainty = 1.0: "
-        f"{(uncertainties == 1.0).sum()}/{len(uncertainties)}"
-    )
-
     n_acquire = int(len(unlabeled_pool) * ACQUISITION_FRACTION)
-    acquire_indices = np.argsort(-uncertainties)[:n_acquire]
+    n_acquire = max(1, n_acquire)
+
+    if ACQUISITION_STRATEGY == "active":
+        uncertainties, confidences = compute_uncertainty(
+            model,
+            processor,
+            unlabeled_pool,
+            batch_size=UNCERTAINTY_BATCH_SIZE,
+            iteration=iteration,
+        )
+
+        print(
+            f"DEBUG: Uncertainty stats - min: {uncertainties.min():.4f}, "
+            f"max: {uncertainties.max():.4f}, mean: {uncertainties.mean():.4f}"
+        )
+        print(
+            f"DEBUG: Confidence stats - min: {confidences.min():.4f}, "
+            f"max: {confidences.max():.4f}, mean: {confidences.mean():.4f}"
+        )
+        print(
+            f"DEBUG: Number of samples with uncertainty = 1.0: "
+            f"{(uncertainties == 1.0).sum()}/{len(uncertainties)}"
+        )
+
+        acquire_indices = select_acquisition_indices(
+            unlabeled_pool=unlabeled_pool,
+            n_acquire=n_acquire,
+            strategy=ACQUISITION_STRATEGY,
+            iteration=iteration,
+            uncertainties=uncertainties,
+        )
+
+        selected_stat = f"{uncertainties[acquire_indices].mean():.4f}"
+        selected_stat_name = "Mean uncertainty selected"
+
+    elif ACQUISITION_STRATEGY == "random":
+        acquire_indices = select_acquisition_indices(
+            unlabeled_pool=unlabeled_pool,
+            n_acquire=n_acquire,
+            strategy=ACQUISITION_STRATEGY,
+            iteration=iteration,
+        )
+
+        selected_stat = "N/A (random selection)"
+        selected_stat_name = "Selection metric"
+
+    else:
+        raise ValueError(f"Unsupported acquisition strategy: {ACQUISITION_STRATEGY}")
 
     new_samples = unlabeled_pool.select(acquire_indices.tolist())
     labeled_set = concatenate_datasets([labeled_set, new_samples])
 
-    remaining_indices = list(set(range(len(unlabeled_pool))) - set(acquire_indices))
+    remaining_indices = sorted(set(range(len(unlabeled_pool))) - set(acquire_indices.tolist()))
     unlabeled_pool = unlabeled_pool.select(remaining_indices)
 
     print(f"Added {len(new_samples)} samples.")
-    print(f"Mean uncertainty selected: {uncertainties[acquire_indices].mean():.4f}")
+    print(f"{selected_stat_name}: {selected_stat}")
     print(f"Total labeled samples: {len(labeled_set)}")
     print(f"Remaining unlabeled samples: {len(unlabeled_pool)}")
 
-print("Active learning complete.")
+print(f"{ACQUISITION_STRATEGY.capitalize()} learning run complete.")
