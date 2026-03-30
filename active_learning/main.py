@@ -76,6 +76,9 @@ if ACQUISITION_STRATEGY == "random":
 else:
     EXPERIMENT_NAME = f"{ACQUISITION_STRATEGY}_seed_{SEED}"
 
+OUTPUT_DIR = f"./active_learning_models/{EXPERIMENT_NAME}"
+SELECTION_TRACKING_CSV = os.path.join(OUTPUT_DIR, "selected_samples_tracking.csv")
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 random.seed(SEED)
@@ -158,6 +161,76 @@ def clear_gpu():
 
 
 # ====================================================
+# TRACKING HELPERS
+# ====================================================
+
+def append_selected_samples_to_csv(records, filepath):
+    """Append selected sample metadata to a CSV file."""
+    if not records:
+        return
+
+    df = pd.DataFrame(records)
+    write_header = not os.path.exists(filepath)
+    df.to_csv(filepath, mode="a", header=write_header, index=False)
+    print(f"Selection tracking updated: {filepath}")
+
+
+def build_seed_tracking_records(dataset, strategy):
+    """Create tracking records for the initial seed set."""
+    records = []
+    for sample in dataset:
+        records.append(
+            {
+                "iteration": -1,
+                "sample_id": sample["id"],
+                "strategy": strategy,
+                "selection_type": "initial_seed",
+                "uncertainty": np.nan,
+                "confidence": np.nan,
+            }
+        )
+    return records
+
+
+def build_acquisition_tracking_records(
+    unlabeled_pool,
+    acquire_indices,
+    iteration,
+    strategy,
+    uncertainties=None,
+    confidences=None,
+):
+    """Create tracking records for newly acquired samples."""
+    records = []
+
+    for pool_idx in acquire_indices.tolist():
+        sample = unlabeled_pool[int(pool_idx)]
+
+        if strategy == "active":
+            record = {
+                "iteration": iteration,
+                "sample_id": sample["id"],
+                "strategy": strategy,
+                "selection_type": "acquired",
+                "uncertainty": float(uncertainties[pool_idx]),
+                "confidence": float(confidences[pool_idx]),
+            }
+        else:
+            record = {
+                "iteration": iteration,
+                "sample_id": sample["id"],
+                "strategy": strategy,
+                "selection_type": "acquired",
+                "uncertainty": np.nan,
+                "confidence": np.nan,
+            }
+
+        records.append(record)
+
+    return records
+
+
+# ====================================================
 # LOAD MODEL
 # ====================================================
 
@@ -211,7 +284,6 @@ unlabeled_pool = shuffled.select(range(n_initial, len(train_pool)))
 # DATA SAVING FOR EXTERNAL TRAINING
 # ====================================================
 
-
 def save_dataset_to_parquet(dataset, filepath):
     """Save HuggingFace dataset to parquet format for external training script."""
     data_list = []
@@ -237,7 +309,7 @@ def save_dataset_to_parquet(dataset, filepath):
 
 def call_training_script(train_parquet_path, iteration, model_name):
     """Call the unified_qwen25_finetune.py script for training."""
-    output_dir = f"./active_learning_models/{EXPERIMENT_NAME}/iteration_{iteration}"
+    output_dir = f"{OUTPUT_DIR}/iteration_{iteration}"
 
     cmd = [
         "python",
@@ -279,7 +351,6 @@ def call_training_script(train_parquet_path, iteration, model_name):
 # ====================================================
 # UNCERTAINTY (CONFIDENCE-BASED)
 # ====================================================
-
 
 def clean_prediction_text(text):
     """Remove common chat-template artifacts from decoded predictions."""
@@ -489,7 +560,6 @@ def compute_uncertainty(model, processor, dataset, batch_size=2, iteration=None)
 # ACQUISITION STRATEGY
 # ====================================================
 
-
 def select_acquisition_indices(unlabeled_pool, n_acquire, strategy, iteration, uncertainties=None):
     """Select indices from the unlabeled pool according to the acquisition strategy."""
     n_pool = len(unlabeled_pool)
@@ -515,13 +585,26 @@ def select_acquisition_indices(unlabeled_pool, n_acquire, strategy, iteration, u
 # ACTIVE LEARNING / RANDOM SAMPLING LOOP
 # ====================================================
 
-os.makedirs(f"./active_learning_models/{EXPERIMENT_NAME}", exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# reset tracking file at the start of a run
+if os.path.exists(SELECTION_TRACKING_CSV):
+    os.remove(SELECTION_TRACKING_CSV)
+
+# save initial seed set tracking
+seed_tracking_records = build_seed_tracking_records(
+    dataset=labeled_set,
+    strategy=ACQUISITION_STRATEGY,
+)
+append_selected_samples_to_csv(seed_tracking_records, SELECTION_TRACKING_CSV)
+
 current_model_path = MODEL_NAME
 
 print(f"Running experiment: {EXPERIMENT_NAME}")
 print(f"Acquisition strategy: {ACQUISITION_STRATEGY}")
 print(f"Seed: {SEED}")
 print(f"Run ID: {RUN_ID}")
+print(f"Selection tracking CSV: {SELECTION_TRACKING_CSV}")
 
 for iteration in range(NUM_ITERATIONS):
     print(f"\n===== ITERATION {iteration} =====")
@@ -593,6 +676,15 @@ for iteration in range(NUM_ITERATIONS):
         selected_stat = f"{uncertainties[acquire_indices].mean():.4f}"
         selected_stat_name = "Mean uncertainty selected"
 
+        selected_records = build_acquisition_tracking_records(
+            unlabeled_pool=unlabeled_pool,
+            acquire_indices=acquire_indices,
+            iteration=iteration,
+            strategy=ACQUISITION_STRATEGY,
+            uncertainties=uncertainties,
+            confidences=confidences,
+        )
+
     elif ACQUISITION_STRATEGY == "random":
         acquire_indices = select_acquisition_indices(
             unlabeled_pool=unlabeled_pool,
@@ -604,8 +696,17 @@ for iteration in range(NUM_ITERATIONS):
         selected_stat = "N/A (random selection)"
         selected_stat_name = "Selection metric"
 
+        selected_records = build_acquisition_tracking_records(
+            unlabeled_pool=unlabeled_pool,
+            acquire_indices=acquire_indices,
+            iteration=iteration,
+            strategy=ACQUISITION_STRATEGY,
+        )
+
     else:
         raise ValueError(f"Unsupported acquisition strategy: {ACQUISITION_STRATEGY}")
+
+    append_selected_samples_to_csv(selected_records, SELECTION_TRACKING_CSV)
 
     new_samples = unlabeled_pool.select(acquire_indices.tolist())
     labeled_set = concatenate_datasets([labeled_set, new_samples])
